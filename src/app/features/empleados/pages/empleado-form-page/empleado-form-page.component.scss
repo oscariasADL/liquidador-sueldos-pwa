@@ -1,0 +1,34 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.form-card {
+  max-width: 640px;
+}
+
+.form-grid {
+  display: grid;
+  gap: $space-4;
+  grid-template-columns: 1fr;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  margin-top: $space-6;
+  padding-top: $space-6;
+  border-top: 1px solid $glass-border;
+
+  @include mobile {
+    flex-direction: column-reverse;
+
+    .btn-primary,
+    .btn-ghost {
+      width: 100%;
+    }
+  }
+}

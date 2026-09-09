@@ -1,0 +1,64 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">$</div>
+      <h1>LiquidApp</h1>
+      <p>Liquidador de Sueldos</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="admin@ejemplo.com"
+          autocomplete="email"
+        />
+        @if (f.email.touched && f.email.errors) {
+          <span class="form-error">
+            @if (f.email.errors['required']) { El correo es obligatorio. }
+            @else if (f.email.errors['email']) { Ingresa un correo válido. }
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••"
+          autocomplete="current-password"
+        />
+        @if (f.password.touched && f.password.errors) {
+          <span class="form-error">
+            @if (f.password.errors['required']) { La contraseña es obligatoria. }
+            @else if (f.password.errors['minlength']) { Mínimo 6 caracteres. }
+          </span>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <div class="login-error" role="alert">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="btn-primary btn-block btn-lg"
+        [disabled]="state() === 'loading'"
+      >
+        @if (state() === 'loading') {
+          <app-loading-spinner [size]="20" [inline]="true" />
+          Ingresando...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+    </form>
+  </div>
+</div>

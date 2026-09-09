@@ -1,0 +1,222 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ============================================
+// GLOBAL STYLES
+// ============================================
+
+body {
+  background: $bg-gradient;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+// ============================================
+// FORM ELEMENTS
+// ============================================
+
+input[type='text'],
+input[type='email'],
+input[type='tel'],
+input[type='number'],
+input[type='password'],
+input[type='date'],
+input[type='time'],
+textarea,
+select {
+  @include input-base;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+label {
+  display: block;
+  margin-bottom: $space-1;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $text-secondary;
+}
+
+// ============================================
+// BUTTON CLASSES
+// ============================================
+
+.btn-primary {
+  @include btn-primary;
+}
+
+.btn-ghost {
+  @include btn-ghost;
+}
+
+.btn-danger {
+  @include btn-danger;
+}
+
+.btn-sm {
+  padding: $space-2 $space-4;
+  font-size: $font-size-xs;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: $space-4 $space-8;
+  font-size: $font-size-base;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+// ============================================
+// UTILITY CLASSES
+// ============================================
+
+.container {
+  width: 100%;
+  max-width: $breakpoint-xl;
+  margin: 0 auto;
+  padding: 0 $space-4;
+
+  @include tablet-up {
+    padding: 0 $space-6;
+  }
+
+  @include desktop {
+    padding: 0 $space-8;
+  }
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  h1, h2 {
+    margin: 0;
+  }
+}
+
+.card {
+  @include glass-card-static;
+  padding: $space-6;
+}
+
+.form-group {
+  margin-bottom: $space-4;
+}
+
+.form-error {
+  font-size: $font-size-xs;
+  color: $color-error;
+  margin-top: $space-1;
+}
+
+.grid {
+  display: grid;
+  gap: $space-4;
+
+  &.grid-2 {
+    grid-template-columns: 1fr;
+
+    @include tablet-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &.grid-3 {
+    grid-template-columns: 1fr;
+
+    @include tablet-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include desktop {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  &.grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+
+    @include desktop {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+}
+
+// ============================================
+// SCROLLBAR
+// ============================================
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: $radius-full;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+// ============================================
+// TABLE
+// ============================================
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: $space-3 $space-4;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-semibold;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid $glass-border;
+  }
+
+  td {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}

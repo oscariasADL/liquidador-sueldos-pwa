@@ -1,0 +1,160 @@
+<div class="page-header">
+  <h1>Liquidación</h1>
+</div>
+
+@if (loadState() === 'loading') {
+  <app-loading-spinner />
+} @else {
+  <div class="liquidacion-layout">
+    <!-- Form section -->
+    <div class="card form-section">
+      <h3>Nueva Liquidación</h3>
+      <form [formGroup]="form" (ngSubmit)="calcular()" novalidate>
+        <div class="form-group">
+          <label for="empleado">Empleado</label>
+          <select id="empleado" formControlName="empleado_id">
+            <option value="">— Seleccionar —</option>
+            @for (emp of empleados(); track emp.id) {
+              <option [value]="emp.id">{{ emp.nombre }} — {{ emp.valor_hora | currencyCop }}/h</option>
+            }
+          </select>
+        </div>
+
+        <div class="date-row">
+          <div class="form-group">
+            <label for="fecha_inicio">Desde</label>
+            <input id="fecha_inicio" type="date" formControlName="fecha_inicio" />
+          </div>
+          <div class="form-group">
+            <label for="fecha_fin">Hasta</label>
+            <input id="fecha_fin" type="date" formControlName="fecha_fin" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="notas">Notas</label>
+          <input id="notas" type="text" formControlName="notas" placeholder="Opcional" />
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary btn-block"
+          [disabled]="calcState() === 'loading'"
+        >
+          @if (calcState() === 'loading') {
+            <app-loading-spinner [size]="18" [inline]="true" />
+            Calculando...
+          } @else {
+            Calcular liquidación
+          }
+        </button>
+      </form>
+    </div>
+
+    <!-- Result section -->
+    <div class="result-section">
+      @if (desglose().length > 0) {
+        <div class="card">
+          <h3>Desglose</h3>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Almuerzo</th>
+                  <th>Horas</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of desglose(); track d.fecha) {
+                  <tr [class.overtime-row]="d.es_hora_extra">
+                    <td>{{ d.fecha }}</td>
+                    <td>{{ d.hora_entrada }}</td>
+                    <td>{{ d.hora_salida }}</td>
+                    <td>{{ d.minutos_almuerzo }}m</td>
+                    <td>
+                      <span [class.overtime-text]="d.es_hora_extra">
+                        {{ d.horas_trabajadas | hoursFormat }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary">
+            <div class="summary__row">
+              <span>Total horas</span>
+              <strong>{{ totalHoras() | hoursFormat }}</strong>
+            </div>
+            <div class="summary__row">
+              <span>Valor hora</span>
+              <strong>{{ valorHora() | currencyCop }}</strong>
+            </div>
+            <div class="summary__row summary__row--total">
+              <span>TOTAL A PAGAR</span>
+              <strong>{{ totalPagar() | currencyCop }}</strong>
+            </div>
+          </div>
+
+          <button
+            class="btn-primary btn-block btn-lg"
+            style="margin-top: 1.5rem;"
+            [disabled]="saveState() === 'loading'"
+            (click)="guardarLiquidacion()"
+          >
+            @if (saveState() === 'loading') {
+              <app-loading-spinner [size]="18" [inline]="true" />
+              Guardando...
+            } @else {
+              Confirmar y guardar liquidación
+            }
+          </button>
+        </div>
+      }
+
+      <!-- Historial -->
+      @if (historial().length > 0) {
+        <div class="card" style="margin-top: 1.5rem;">
+          <h3>Historial de liquidaciones</h3>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Período</th>
+                  <th>Horas</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th>Sync</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (liq of historial(); track liq.id) {
+                  <tr>
+                    <td>{{ liq.empleado?.nombre || '—' }}</td>
+                    <td>{{ liq.fecha_inicio }} / {{ liq.fecha_fin }}</td>
+                    <td>{{ liq.total_horas | hoursFormat }}</td>
+                    <td>{{ liq.total_pagar | currencyCop }}</td>
+                    <td><app-status-badge [status]="liq.estado" /></td>
+                    <td><app-status-badge [status]="liq.sheets_sync_status" /></td>
+                    <td>
+                      <a class="btn-ghost btn-sm" [routerLink]="['/liquidacion', liq.id]">
+                        Ver
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

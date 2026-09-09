@@ -1,0 +1,83 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.liquidacion-layout {
+  display: grid;
+  gap: $space-6;
+  grid-template-columns: 1fr;
+
+  @include desktop {
+    grid-template-columns: 380px 1fr;
+    align-items: start;
+  }
+}
+
+.form-section {
+  h3 {
+    margin-bottom: $space-4;
+    font-size: $font-size-lg;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+}
+
+.date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.overtime-row td {
+  background: rgba(245, 158, 11, 0.05) !important;
+}
+
+.overtime-text {
+  color: $color-warning;
+  font-weight: $font-weight-semibold;
+}
+
+.summary {
+  margin-top: $space-4;
+  padding: $space-4;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: $radius-md;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $space-2 0;
+
+    span {
+      color: $text-secondary;
+      font-size: $font-size-sm;
+    }
+
+    strong {
+      color: $text-primary;
+      font-size: $font-size-base;
+    }
+
+    &--total {
+      padding-top: $space-3;
+      margin-top: $space-2;
+      border-top: 1px solid $glass-border;
+
+      span {
+        font-weight: $font-weight-bold;
+        color: $text-primary;
+        font-size: $font-size-base;
+      }
+
+      strong {
+        color: $color-success;
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-bold;
+      }
+    }
+  }
+}

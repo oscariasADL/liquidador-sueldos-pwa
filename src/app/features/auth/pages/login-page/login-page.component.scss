@@ -1,0 +1,69 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: $space-4;
+}
+
+.login-card {
+  @include glass-card-static;
+  width: 100%;
+  max-width: 420px;
+  padding: $space-8;
+
+  @include mobile {
+    padding: $space-6;
+  }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: $space-8;
+}
+
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: $radius-xl;
+  background: $color-primary;
+  color: $text-on-primary;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-3xl;
+  margin-bottom: $space-4;
+}
+
+.login-header h1 {
+  font-size: $font-size-2xl;
+  margin-bottom: $space-1;
+}
+
+.login-header p {
+  color: $text-secondary;
+  font-size: $font-size-sm;
+}
+
+.login-error {
+  padding: $space-3 $space-4;
+  background: $color-error-light;
+  color: $color-error;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  margin-bottom: $space-4;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+button[type='submit'] {
+  margin-top: $space-2;
+}

@@ -1,0 +1,175 @@
+@use 'sass:color';
+@use 'variables' as *;
+
+// ============================================
+// RESPONSIVE MIXINS
+// ============================================
+@mixin mobile {
+  @media (max-width: #{$breakpoint-md - 1}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: $breakpoint-md) and (max-width: #{$breakpoint-lg - 1}) {
+    @content;
+  }
+}
+
+@mixin tablet-up {
+  @media (min-width: $breakpoint-md) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: $breakpoint-lg) {
+    @content;
+  }
+}
+
+// ============================================
+// GLASSMORPHISM
+// ============================================
+@mixin glass-card {
+  background: $glass-bg;
+  backdrop-filter: blur($glass-blur);
+  -webkit-backdrop-filter: blur($glass-blur);
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+  transition: background $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    background: $glass-bg-hover;
+    box-shadow: $shadow-lg;
+  }
+}
+
+@mixin glass-card-static {
+  background: $glass-bg;
+  backdrop-filter: blur($glass-blur);
+  -webkit-backdrop-filter: blur($glass-blur);
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+}
+
+// ============================================
+// INPUT STYLES
+// ============================================
+@mixin input-base {
+  width: 100%;
+  padding: $space-3 $space-4;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid $glass-border;
+  border-radius: $radius-md;
+  color: $text-primary;
+  font-family: $font-family;
+  font-size: $font-size-base;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+  outline: none;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px $color-primary-light;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.ng-invalid.ng-touched {
+    border-color: $color-error;
+    box-shadow: 0 0 0 3px $color-error-light;
+  }
+}
+
+// ============================================
+// BUTTON STYLES
+// ============================================
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-3 $space-6;
+  font-family: $font-family;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-md;
+  border: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+  min-height: 44px;
+  min-width: 44px;
+  text-decoration: none;
+  line-height: 1;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: $color-primary;
+  color: $text-on-primary;
+
+  &:hover:not(:disabled) {
+    background: $color-primary-hover;
+    box-shadow: $shadow-glow;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+@mixin btn-ghost {
+  @include btn-base;
+  background: transparent;
+  color: $text-secondary;
+  border: 1px solid $glass-border;
+
+  &:hover:not(:disabled) {
+    background: $glass-bg;
+    color: $text-primary;
+  }
+}
+
+@mixin btn-danger {
+  @include btn-base;
+  background: $color-error;
+  color: $text-on-primary;
+
+  &:hover:not(:disabled) {
+    background: color.adjust($color-error, $lightness: -10%);
+  }
+}
+
+// ============================================
+// FOCUS VISIBLE (Accessibility)
+// ============================================
+@mixin focus-visible {
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+}
+
+// ============================================
+// TRUNCATE TEXT
+// ============================================
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

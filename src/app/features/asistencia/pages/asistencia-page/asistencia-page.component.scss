@@ -1,0 +1,83 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.asistencia-layout {
+  display: grid;
+  gap: $space-6;
+  grid-template-columns: 1fr;
+
+  @include desktop {
+    grid-template-columns: 380px 1fr;
+    align-items: start;
+  }
+}
+
+.form-section {
+  h3 {
+    margin-bottom: $space-4;
+    font-size: $font-size-lg;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: $space-3;
+  }
+}
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.hours-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-3 $space-4;
+  background: $color-primary-light;
+  border-radius: $radius-md;
+  margin-top: $space-2;
+
+  &__label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  &__value {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+
+  &.overtime {
+    background: $color-warning-light;
+
+    .hours-preview__value {
+      color: $color-warning;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: $space-3;
+  margin-top: $space-2;
+}
+
+.table-section {
+  h3 {
+    margin-bottom: $space-4;
+    font-size: $font-size-lg;
+  }
+}
+
+.overtime-row td {
+  background: rgba(245, 158, 11, 0.05) !important;
+}
+
+.overtime-badge {
+  color: $color-warning;
+  font-weight: $font-weight-semibold;
+}

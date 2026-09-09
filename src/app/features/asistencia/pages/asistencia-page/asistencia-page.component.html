@@ -1,0 +1,129 @@
+<div class="page-header">
+  <h1>Asistencia</h1>
+</div>
+
+@if (loadState() === 'loading') {
+  <app-loading-spinner />
+} @else {
+  <!-- Employee selector -->
+  <div class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
+    <label for="empleado-select">Seleccionar empleado</label>
+    <select
+      id="empleado-select"
+      [value]="selectedEmpleado()"
+      (change)="onEmpleadoChange($any($event.target).value)"
+    >
+      <option value="">— Seleccionar —</option>
+      @for (emp of empleados(); track emp.id) {
+        <option [value]="emp.id">{{ emp.nombre }} ({{ emp.documento }})</option>
+      }
+    </select>
+  </div>
+
+  @if (selectedEmpleado()) {
+    <div class="asistencia-layout">
+      <!-- Form -->
+      <div class="card form-section">
+        <h3>{{ editingId() ? 'Editar registro' : 'Nuevo registro' }}</h3>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="form-group">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" formControlName="fecha" [readOnly]="!!editingId()" />
+          </div>
+
+          <div class="time-row">
+            <div class="form-group">
+              <label for="hora_entrada">Entrada</label>
+              <input id="hora_entrada" type="time" formControlName="hora_entrada" />
+            </div>
+            <div class="form-group">
+              <label for="hora_salida">Salida</label>
+              <input id="hora_salida" type="time" formControlName="hora_salida" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="almuerzo">Almuerzo (min)</label>
+            <input id="almuerzo" type="number" formControlName="minutos_almuerzo" min="0" max="180" />
+          </div>
+
+          <div class="form-group">
+            <label for="notas">Notas</label>
+            <input id="notas" type="text" formControlName="notas" placeholder="Opcional" />
+          </div>
+
+          <div class="hours-preview" [class.overtime]="horasCalculadas() > 8">
+            <span class="hours-preview__label">Horas calculadas</span>
+            <span class="hours-preview__value">{{ horasCalculadas() | hoursFormat }}</span>
+          </div>
+
+          <div class="form-actions">
+            @if (editingId()) {
+              <button type="button" class="btn-ghost" (click)="cancelEdit()">Cancelar</button>
+            }
+            <button
+              type="submit"
+              class="btn-primary"
+              [disabled]="submitState() === 'loading'"
+              style="flex: 1;"
+            >
+              @if (submitState() === 'loading') {
+                <app-loading-spinner [size]="18" [inline]="true" />
+                Guardando...
+              } @else {
+                {{ editingId() ? 'Actualizar' : 'Registrar' }}
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Table -->
+      <div class="card table-section">
+        <h3>Últimos 30 días</h3>
+        @if (tableState() === 'loading') {
+          <app-loading-spinner />
+        } @else if (registros().length === 0) {
+          <p class="text-muted" style="text-align: center; padding: 2rem 0;">
+            No hay registros en este período.
+          </p>
+        } @else {
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Entrada</th>
+                  <th>Salida</th>
+                  <th>Almuerzo</th>
+                  <th>Horas</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (reg of registros(); track reg.id) {
+                  <tr [class.overtime-row]="isOvertime(reg.horas_trabajadas)">
+                    <td>{{ reg.fecha }}</td>
+                    <td>{{ reg.hora_entrada }}</td>
+                    <td>{{ reg.hora_salida || '—' }}</td>
+                    <td>{{ reg.minutos_almuerzo }}m</td>
+                    <td>
+                      <span [class.overtime-badge]="isOvertime(reg.horas_trabajadas)">
+                        {{ reg.horas_trabajadas | hoursFormat }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn-ghost btn-sm" (click)="editRegistro(reg)">
+                        Editar
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+}

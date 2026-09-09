@@ -1,0 +1,40 @@
+<nav class="navbar">
+  <div class="navbar__container">
+    <a class="navbar__brand" routerLink="/dashboard" (click)="closeMenu()">
+      <span class="navbar__logo">$</span>
+      <span class="navbar__title">LiquidApp</span>
+    </a>
+
+    <button
+      class="navbar__toggle"
+      (click)="toggleMenu()"
+      [attr.aria-expanded]="menuOpen()"
+      aria-label="Abrir menú de navegación"
+    >
+      <span class="navbar__toggle-line" [class.active]="menuOpen()"></span>
+      <span class="navbar__toggle-line" [class.active]="menuOpen()"></span>
+      <span class="navbar__toggle-line" [class.active]="menuOpen()"></span>
+    </button>
+
+    <div class="navbar__menu" [class.open]="menuOpen()">
+      <ul class="navbar__links">
+        @for (item of navItems; track item.path) {
+          <li>
+            <a
+              class="navbar__link"
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              (click)="closeMenu()"
+            >
+              {{ item.label }}
+            </a>
+          </li>
+        }
+      </ul>
+
+      <button class="navbar__logout" (click)="logout()">
+        Cerrar sesión
+      </button>
+    </div>
+  </div>
+</nav>
