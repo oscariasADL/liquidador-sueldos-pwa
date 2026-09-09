@@ -13,6 +13,9 @@
 }
 
 .form-section {
+  min-width: 0;
+  overflow: hidden;
+
   h3 {
     margin-bottom: $space-4;
     font-size: $font-size-lg;
@@ -29,6 +32,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: $space-3;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
 }
 
 .overtime-row td {

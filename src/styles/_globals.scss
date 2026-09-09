@@ -103,17 +103,29 @@ label {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: $space-4;
+  gap: $space-3;
   margin-bottom: $space-6;
+  min-width: 0;
 
   h1, h2 {
     margin: 0;
+    font-size: $font-size-2xl;
+
+    @include mobile {
+      font-size: $font-size-xl;
+    }
   }
 }
 
 .card {
   @include glass-card-static;
   padding: $space-6;
+  min-width: 0;
+  overflow: hidden;
+
+  @include mobile {
+    padding: $space-4;
+  }
 }
 
 .form-group {
@@ -151,7 +163,15 @@ label {
   }
 
   &.grid-4 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+
+    @include mobile {
+      grid-template-columns: 1fr;
+    }
+
+    @include tablet-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
 
     @include desktop {
       grid-template-columns: repeat(4, 1fr);

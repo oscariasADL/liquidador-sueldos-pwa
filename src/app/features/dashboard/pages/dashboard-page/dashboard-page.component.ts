@@ -91,23 +91,39 @@ import { todayISO } from '../../../../shared/utils/time-calculator.util';
     .metric-card {
       display: flex;
       align-items: flex-start;
-      gap: 1rem;
+      gap: 0.75rem;
+      min-width: 0;
 
       &__icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
         border-radius: 12px;
         font-size: 1.25rem;
         flex-shrink: 0;
       }
 
+      > div:last-child {
+        min-width: 0;
+        overflow: hidden;
+      }
+
       h2 {
         margin: 0.25rem 0 0;
-        font-size: 1.75rem;
+        font-size: 1.5rem;
         line-height: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
 

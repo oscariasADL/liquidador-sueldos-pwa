@@ -60,6 +60,7 @@
 // ============================================
 @mixin input-base {
   width: 100%;
+  max-width: 100%;
   padding: $space-3 $space-4;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid $glass-border;
@@ -69,6 +70,7 @@
   font-size: $font-size-base;
   transition: border-color $transition-fast, box-shadow $transition-fast;
   outline: none;
+  box-sizing: border-box;
 
   &::placeholder {
     color: $text-muted;
