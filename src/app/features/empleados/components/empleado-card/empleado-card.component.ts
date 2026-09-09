@@ -25,6 +25,10 @@ import { CurrencyCopPipe } from '../../../../shared/pipes/currency-cop.pipe';
           <span class="emp-card__value">{{ empleado.cargo || 'Sin asignar' }}</span>
         </div>
         <div class="emp-card__field">
+          <span class="emp-card__label">Correo</span>
+          <span class="emp-card__value emp-card__value--email">{{ empleado.email }}</span>
+        </div>
+        <div class="emp-card__field">
           <span class="emp-card__label">Valor hora</span>
           <span class="emp-card__value emp-card__value--highlight">{{ empleado.valor_hora | currencyCop }}</span>
         </div>
@@ -120,10 +124,19 @@ import { CurrencyCopPipe } from '../../../../shared/pipes/currency-cop.pipe';
       &__value {
         font-size: $font-size-sm;
         color: $text-secondary;
+        min-width: 0;
+        text-align: right;
 
         &--highlight {
           color: $color-success;
           font-weight: $font-weight-semibold;
+        }
+
+        &--email {
+          font-size: $font-size-xs;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
       }
 

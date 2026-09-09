@@ -5,33 +5,33 @@ import { AsyncState } from '../../../../core/models/async-state.model';
 import { EmpleadoService } from '../../services/empleado.service';
 import { EmpleadoCardComponent } from '../../components/empleado-card/empleado-card.component';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
+import { BackButtonComponent } from '../../../../shared/components/back-button/back-button.component';
 import { ToastService } from '../../../../shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-empleados-list-page',
   standalone: true,
-  imports: [RouterLink, EmpleadoCardComponent, LoadingSpinnerComponent],
+  imports: [RouterLink, EmpleadoCardComponent, LoadingSpinnerComponent, BackButtonComponent],
   template: `
+    <app-back-button to="/dashboard" label="Volver al dashboard" />
+
     <div class="page-header">
       <h1>Empleados</h1>
-      <a class="btn-primary" routerLink="/empleados/nuevo">+ Nuevo Empleado</a>
+      <a class="btn-primary" routerLink="/empleados/nuevo">＋ Nuevo empleado</a>
     </div>
 
     @if (state() === 'loading') {
       <app-loading-spinner />
     } @else if (state() === 'error') {
-      <div class="card" style="text-align: center;">
+      <div class="card empty-state">
         <p class="text-error">Error al cargar empleados.</p>
-        <button class="btn-ghost" style="margin-top: 1rem;" (click)="loadEmpleados()">
-          Reintentar
-        </button>
+        <button class="btn-ghost" (click)="loadEmpleados()">Reintentar</button>
       </div>
     } @else if (empleados().length === 0) {
-      <div class="card" style="text-align: center;">
-        <p class="text-muted">No hay empleados registrados.</p>
-        <a class="btn-primary" routerLink="/empleados/nuevo" style="margin-top: 1rem;">
-          Crear primer empleado
-        </a>
+      <div class="card empty-state">
+        <div class="empty-state__icon" aria-hidden="true">👤</div>
+        <p>No hay empleados registrados.</p>
+        <a class="btn-primary" routerLink="/empleados/nuevo">Crear primer empleado</a>
       </div>
     } @else {
       <div class="grid grid-3">
@@ -54,14 +54,13 @@ export default class EmpleadosListPageComponent implements OnInit {
   state = signal<AsyncState>('idle');
 
   ngOnInit(): void {
-    this.loadEmpleados();
+    void this.loadEmpleados();
   }
 
   async loadEmpleados(): Promise<void> {
     this.state.set('loading');
     try {
-      const data = await this.empleadoService.getAll();
-      this.empleados.set(data);
+      this.empleados.set(await this.empleadoService.getAllIncludingInactive());
       this.state.set('success');
     } catch {
       this.state.set('error');
@@ -69,13 +68,13 @@ export default class EmpleadosListPageComponent implements OnInit {
   }
 
   async deactivate(emp: Empleado): Promise<void> {
-    if (!confirm(`¿Desactivar a ${emp.nombre}?`)) return;
+    if (!confirm(`¿Desactivar a ${emp.nombre}? Perderá el acceso a la aplicación.`)) return;
     try {
       await this.empleadoService.deactivate(emp.id);
       this.toast.success(`${emp.nombre} desactivado.`);
       await this.loadEmpleados();
     } catch {
-      this.toast.error('Error al desactivar empleado.');
+      this.toast.error('Error al desactivar el empleado.');
     }
   }
 
@@ -85,7 +84,7 @@ export default class EmpleadosListPageComponent implements OnInit {
       this.toast.success(`${emp.nombre} activado.`);
       await this.loadEmpleados();
     } catch {
-      this.toast.error('Error al activar empleado.');
+      this.toast.error('Error al activar el empleado.');
     }
   }
 }

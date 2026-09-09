@@ -1,129 +1,145 @@
 <div class="page-header">
-  <h1>Asistencia</h1>
+  <h1>Registros de asistencia</h1>
+  <a class="btn-primary" routerLink="/asistencia/registrar">＋ Registrar asistencia</a>
 </div>
 
-@if (loadState() === 'loading') {
-  <app-loading-spinner />
-} @else {
-  <!-- Employee selector -->
-  <div class="form-group" style="max-width: 400px; margin-bottom: 1.5rem;">
-    <label for="empleado-select">Seleccionar empleado</label>
-    <select
-      id="empleado-select"
-      [value]="selectedEmpleado()"
-      (change)="onEmpleadoChange($any($event.target).value)"
-    >
-      <option value="">— Seleccionar —</option>
-      @for (emp of empleados(); track emp.id) {
-        <option [value]="emp.id">{{ emp.nombre }} ({{ emp.documento }})</option>
-      }
-    </select>
-  </div>
-
-  @if (selectedEmpleado()) {
-    <div class="asistencia-layout">
-      <!-- Form -->
-      <div class="card form-section">
-        <h3>{{ editingId() ? 'Editar registro' : 'Nuevo registro' }}</h3>
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-          <div class="form-group">
-            <label for="fecha">Fecha</label>
-            <input id="fecha" type="date" formControlName="fecha" [readOnly]="!!editingId()" />
-          </div>
-
-          <div class="time-row">
-            <div class="form-group">
-              <label for="hora_entrada">Entrada</label>
-              <input id="hora_entrada" type="time" formControlName="hora_entrada" />
-            </div>
-            <div class="form-group">
-              <label for="hora_salida">Salida</label>
-              <input id="hora_salida" type="time" formControlName="hora_salida" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="almuerzo">Almuerzo (min)</label>
-            <input id="almuerzo" type="number" formControlName="minutos_almuerzo" min="0" max="180" />
-          </div>
-
-          <div class="form-group">
-            <label for="notas">Notas</label>
-            <input id="notas" type="text" formControlName="notas" placeholder="Opcional" />
-          </div>
-
-          <div class="hours-preview" [class.overtime]="horasCalculadas() > 8">
-            <span class="hours-preview__label">Horas calculadas</span>
-            <span class="hours-preview__value">{{ horasCalculadas() | hoursFormat }}</span>
-          </div>
-
-          <div class="form-actions">
-            @if (editingId()) {
-              <button type="button" class="btn-ghost" (click)="cancelEdit()">Cancelar</button>
+<!-- Filters -->
+<div class="card filters">
+  <form [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <div class="filters__grid">
+      @if (isAdmin()) {
+        <div class="form-group">
+          <label for="f-empleado">Empleado</label>
+          <select id="f-empleado" formControlName="empleadoId">
+            <option value="">Todos</option>
+            @for (emp of empleados(); track emp.id) {
+              <option [value]="emp.id">{{ emp.nombre }}</option>
             }
-            <button
-              type="submit"
-              class="btn-primary"
-              [disabled]="submitState() === 'loading'"
-              style="flex: 1;"
-            >
-              @if (submitState() === 'loading') {
-                <app-loading-spinner [size]="18" [inline]="true" />
-                Guardando...
-              } @else {
-                {{ editingId() ? 'Actualizar' : 'Registrar' }}
-              }
-            </button>
-          </div>
-        </form>
+          </select>
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="f-inicio">Desde</label>
+        <input id="f-inicio" type="date" formControlName="fechaInicio" />
       </div>
 
-      <!-- Table -->
-      <div class="card table-section">
-        <h3>Últimos 30 días</h3>
-        @if (tableState() === 'loading') {
-          <app-loading-spinner />
-        } @else if (registros().length === 0) {
-          <p class="text-muted" style="text-align: center; padding: 2rem 0;">
-            No hay registros en este período.
-          </p>
-        } @else {
-          <div class="table-wrapper">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Entrada</th>
-                  <th>Salida</th>
-                  <th>Almuerzo</th>
-                  <th>Horas</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (reg of registros(); track reg.id) {
-                  <tr [class.overtime-row]="isOvertime(reg.horas_trabajadas)">
-                    <td>{{ reg.fecha }}</td>
-                    <td>{{ reg.hora_entrada }}</td>
-                    <td>{{ reg.hora_salida || '—' }}</td>
-                    <td>{{ reg.minutos_almuerzo }}m</td>
-                    <td>
-                      <span [class.overtime-badge]="isOvertime(reg.horas_trabajadas)">
-                        {{ reg.horas_trabajadas | hoursFormat }}
-                      </span>
-                    </td>
-                    <td>
-                      <button class="btn-ghost btn-sm" (click)="editRegistro(reg)">
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
+      <div class="form-group">
+        <label for="f-fin">Hasta</label>
+        <input id="f-fin" type="date" formControlName="fechaFin" />
       </div>
     </div>
-  }
+
+    <button type="submit" class="btn-ghost btn-block" [disabled]="tableState() === 'loading'">
+      Aplicar filtros
+    </button>
+  </form>
+</div>
+
+<!-- Summary -->
+<div class="grid grid-2 summary-grid">
+  <div class="card metric-mini">
+    <span class="metric-mini__label">Días registrados</span>
+    <span class="metric-mini__value">{{ diasRegistrados() }}</span>
+  </div>
+  <div class="card metric-mini">
+    <span class="metric-mini__label">Horas efectivas</span>
+    <span class="metric-mini__value metric-mini__value--accent">
+      {{ totalHoras() | hoursFormat }}
+    </span>
+  </div>
+</div>
+
+<!-- Records -->
+@if (tableState() === 'loading') {
+  <app-loading-spinner />
+} @else if (tableState() === 'error') {
+  <div class="card empty-state">
+    <p class="text-error">No se pudieron cargar los registros.</p>
+    <button class="btn-ghost" (click)="applyFilters()">Reintentar</button>
+  </div>
+} @else if (registros().length === 0) {
+  <div class="card empty-state">
+    <div class="empty-state__icon" aria-hidden="true">📋</div>
+    <p>No hay registros en este período.</p>
+    <a class="btn-primary" routerLink="/asistencia/registrar">Registrar asistencia</a>
+  </div>
+} @else {
+  <!-- Desktop table -->
+  <div class="card records-table">
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            @if (isAdmin()) { <th>Empleado</th> }
+            <th>Entrada</th>
+            <th>Salida</th>
+            <th>Almuerzo</th>
+            <th>Horas</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (reg of registros(); track reg.id) {
+            <tr>
+              <td>{{ reg.fecha }}</td>
+              @if (isAdmin()) { <td>{{ reg.empleado?.nombre || '—' }}</td> }
+              <td>{{ reg.hora_entrada }}</td>
+              <td>{{ reg.hora_salida || '—' }}</td>
+              <td>{{ reg.minutos_almuerzo }}m</td>
+              <td>
+                <span [class.overtime-text]="isOvertime(reg.horas_trabajadas)">
+                  {{ reg.horas_trabajadas | hoursFormat }}
+                </span>
+              </td>
+              <td>
+                <a class="btn-ghost btn-sm" [routerLink]="['/asistencia/registrar', reg.id]">
+                  Editar
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mobile cards -->
+  <div class="records-cards data-list">
+    @for (reg of registros(); track reg.id) {
+      <div class="data-list__item" [class.data-list__item--highlight]="isOvertime(reg.horas_trabajadas)">
+        <div class="record-head">
+          <div>
+            <span class="record-head__date">{{ reg.fecha }}</span>
+            @if (isAdmin()) {
+              <span class="record-head__emp">{{ reg.empleado?.nombre || '—' }}</span>
+            }
+          </div>
+          <span class="record-head__hours" [class.overtime-text]="isOvertime(reg.horas_trabajadas)">
+            {{ reg.horas_trabajadas | hoursFormat }}
+          </span>
+        </div>
+
+        <dl>
+          <div class="data-list__row">
+            <dt>Entrada</dt>
+            <dd>{{ reg.hora_entrada }}</dd>
+          </div>
+          <div class="data-list__row">
+            <dt>Salida</dt>
+            <dd>{{ reg.hora_salida || '—' }}</dd>
+          </div>
+          <div class="data-list__row">
+            <dt>Almuerzo</dt>
+            <dd>{{ reg.minutos_almuerzo }} min</dd>
+          </div>
+        </dl>
+
+        <a class="btn-ghost btn-sm btn-block" [routerLink]="['/asistencia/registrar', reg.id]">
+          Editar registro
+        </a>
+      </div>
+    }
+  </div>
 }

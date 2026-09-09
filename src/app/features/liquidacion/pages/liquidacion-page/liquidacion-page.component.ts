@@ -1,10 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Empleado } from '../../../../core/models/empleado.model';
-import { RegistroAsistencia } from '../../../../core/models/asistencia.model';
 import { DesgloseDia, LiquidacionConEmpleado } from '../../../../core/models/liquidacion.model';
 import { AsyncState } from '../../../../core/models/async-state.model';
+import { AuthService } from '../../../../core/services/auth.service';
 import { EmpleadoService } from '../../../empleados/services/empleado.service';
 import { AsistenciaService } from '../../../asistencia/services/asistencia.service';
 import { LiquidacionService } from '../../services/liquidacion.service';
@@ -14,7 +14,7 @@ import { StatusBadgeComponent } from '../../../../shared/components/status-badge
 import { HoursFormatPipe } from '../../../../shared/pipes/hours-format.pipe';
 import { CurrencyCopPipe } from '../../../../shared/pipes/currency-cop.pipe';
 import { ToastService } from '../../../../shared/components/toast/toast.component';
-import { isOvertime } from '../../../../shared/utils/time-calculator.util';
+import { firstDayOfMonthISO, isOvertime, todayISO } from '../../../../shared/utils/time-calculator.util';
 
 @Component({
   selector: 'app-liquidacion-page',
@@ -32,11 +32,15 @@ import { isOvertime } from '../../../../shared/utils/time-calculator.util';
 })
 export default class LiquidacionPageComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private authService = inject(AuthService);
   private empleadoService = inject(EmpleadoService);
   private asistenciaService = inject(AsistenciaService);
   private liquidacionService = inject(LiquidacionService);
   private sheetsSyncService = inject(SheetsSyncService);
   private toast = inject(ToastService);
+
+  readonly isAdmin = this.authService.isAdmin;
 
   empleados = signal<Empleado[]>([]);
   desglose = signal<DesgloseDia[]>([]);
@@ -49,28 +53,36 @@ export default class LiquidacionPageComponent implements OnInit {
   valorHora = signal(0);
   totalPagar = signal(0);
 
-  private selectedEmpleadoObj: Empleado | null = null;
+  private selectedEmpleado: Empleado | null = null;
 
   form = this.fb.nonNullable.group({
     empleado_id: ['', [Validators.required]],
-    fecha_inicio: ['', [Validators.required]],
-    fecha_fin: ['', [Validators.required]],
+    fecha_inicio: [firstDayOfMonthISO(), [Validators.required]],
+    fecha_fin: [todayISO(), [Validators.required]],
     notas: [''],
   });
 
+  get f() {
+    return this.form.controls;
+  }
+
   ngOnInit(): void {
-    this.loadInitialData();
+    void this.loadInitialData();
   }
 
   private async loadInitialData(): Promise<void> {
     this.loadState.set('loading');
     try {
-      const [empleados, historial] = await Promise.all([
-        this.empleadoService.getAll(),
-        this.liquidacionService.getAll(),
-      ]);
-      this.empleados.set(empleados);
-      this.historial.set(historial);
+      const requests: Promise<unknown>[] = [this.liquidacionService.getAll()];
+      if (this.isAdmin()) {
+        requests.push(this.empleadoService.getAll());
+      }
+
+      const [historial, empleados] = await Promise.all(requests);
+      this.historial.set(historial as LiquidacionConEmpleado[]);
+      if (empleados) {
+        this.empleados.set(empleados as Empleado[]);
+      }
       this.loadState.set('success');
     } catch {
       this.loadState.set('error');
@@ -83,14 +95,18 @@ export default class LiquidacionPageComponent implements OnInit {
       return;
     }
 
+    const v = this.form.getRawValue();
+    if (v.fecha_fin < v.fecha_inicio) {
+      this.toast.error('La fecha final debe ser posterior a la inicial.');
+      return;
+    }
+
     this.calcState.set('loading');
     this.desglose.set([]);
 
     try {
-      const v = this.form.getRawValue();
-      this.selectedEmpleadoObj = this.empleados().find((e) => e.id === v.empleado_id) ?? null;
-
-      if (!this.selectedEmpleadoObj) {
+      this.selectedEmpleado = this.empleados().find((e) => e.id === v.empleado_id) ?? null;
+      if (!this.selectedEmpleado) {
         this.toast.error('Empleado no encontrado.');
         this.calcState.set('error');
         return;
@@ -102,46 +118,45 @@ export default class LiquidacionPageComponent implements OnInit {
         v.fecha_fin
       );
 
-      if (registros.length === 0) {
+      const dias: DesgloseDia[] = registros
+        .filter((r) => r.hora_salida)
+        .map((r) => ({
+          fecha: r.fecha,
+          hora_entrada: r.hora_entrada,
+          hora_salida: r.hora_salida as string,
+          minutos_almuerzo: r.minutos_almuerzo,
+          horas_trabajadas: Number(r.horas_trabajadas ?? 0),
+          es_hora_extra: isOvertime(Number(r.horas_trabajadas ?? 0)),
+        }));
+
+      if (dias.length === 0) {
         this.toast.error('No hay registros de asistencia en el período seleccionado.');
         this.calcState.set('error');
         return;
       }
 
-      const des: DesgloseDia[] = registros
-        .filter((r): r is RegistroAsistencia & { hora_salida: string } => !!r.hora_salida)
-        .sort((a, b) => a.fecha.localeCompare(b.fecha))
-        .map((r) => ({
-          fecha: r.fecha,
-          hora_entrada: r.hora_entrada,
-          hora_salida: r.hora_salida,
-          minutos_almuerzo: r.minutos_almuerzo,
-          horas_trabajadas: r.horas_trabajadas ?? 0,
-          es_hora_extra: isOvertime(r.horas_trabajadas ?? 0),
-        }));
+      const total = dias.reduce((sum, d) => sum + d.horas_trabajadas, 0);
+      const valorH = Number(this.selectedEmpleado.valor_hora);
 
-      const total = des.reduce((sum, d) => sum + d.horas_trabajadas, 0);
-      const valorH = this.selectedEmpleadoObj.valor_hora;
-
-      this.desglose.set(des);
+      this.desglose.set(dias);
       this.totalHoras.set(Math.round(total * 100) / 100);
       this.valorHora.set(valorH);
       this.totalPagar.set(Math.round(total * valorH));
       this.calcState.set('success');
-    } catch (err) {
+    } catch {
       this.calcState.set('error');
-      this.toast.error('Error al calcular liquidación.');
+      this.toast.error('Error al calcular la liquidación.');
     }
   }
 
   async guardarLiquidacion(): Promise<void> {
-    if (this.saveState() === 'loading' || !this.selectedEmpleadoObj) return;
+    if (this.saveState() === 'loading' || !this.selectedEmpleado) return;
 
     this.saveState.set('loading');
+    const v = this.form.getRawValue();
+    const empleado = this.selectedEmpleado;
 
     try {
-      const v = this.form.getRawValue();
-
       const liquidacion = await this.liquidacionService.create({
         empleado_id: v.empleado_id,
         fecha_inicio: v.fecha_inicio,
@@ -152,14 +167,15 @@ export default class LiquidacionPageComponent implements OnInit {
         notas: v.notas || undefined,
       });
 
-      this.toast.success('Liquidación guardada correctamente.');
+      this.toast.success('Liquidación guardada.');
+      this.saveState.set('success');
 
-      // Sync with Google Sheets (non-blocking)
-      this.sheetsSyncService
+      // Sheets sync must not block the main flow
+      void this.sheetsSyncService
         .syncLiquidacion({
           liquidacion_id: liquidacion.id,
-          empleado_nombre: this.selectedEmpleadoObj.nombre,
-          empleado_documento: this.selectedEmpleadoObj.documento,
+          empleado_nombre: empleado.nombre,
+          empleado_documento: empleado.documento,
           fecha_inicio: v.fecha_inicio,
           fecha_fin: v.fecha_fin,
           total_horas: this.totalHoras(),
@@ -169,30 +185,32 @@ export default class LiquidacionPageComponent implements OnInit {
           fecha_liquidacion: liquidacion.created_at,
         })
         .then((result) => {
-          if (result.success) {
-            this.toast.show('Sincronizado con Google Sheets.', 'info');
-          } else {
-            this.toast.show('Sheets sync falló. Se puede reintentar después.', 'warning');
+          if (!result.success) {
+            this.toast.show('Google Sheets no respondió. Puedes reintentar el envío.', 'warning');
           }
-          this.loadHistorial();
+          void this.refreshHistorial();
         });
 
-      // Reset form and reload
       this.desglose.set([]);
-      this.form.reset();
-      this.saveState.set('success');
-      await this.loadHistorial();
-    } catch (err) {
+      this.form.reset({
+        empleado_id: '',
+        fecha_inicio: firstDayOfMonthISO(),
+        fecha_fin: todayISO(),
+        notas: '',
+      });
+
+      this.router.navigate(['/liquidacion', liquidacion.id]);
+    } catch {
       this.saveState.set('error');
-      this.toast.error('Error al guardar liquidación.');
+      this.toast.error('Error al guardar la liquidación.');
     }
   }
 
-  private async loadHistorial(): Promise<void> {
+  private async refreshHistorial(): Promise<void> {
     try {
       this.historial.set(await this.liquidacionService.getAll());
     } catch {
-      // Silent fail — historial is non-critical
+      // Historial is non-critical; keep the current list on failure
     }
   }
 }

@@ -1,89 +1,91 @@
+<app-back-button to="/empleados" label="Volver a empleados" />
+
 <div class="page-header">
   <h1>{{ pageTitle }}</h1>
-  <a class="btn-ghost" routerLink="/empleados">← Volver</a>
 </div>
 
 @if (loadState() === 'loading') {
   <app-loading-spinner />
 } @else {
-  <div class="form-card card">
+  <div class="card form-card">
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       <div class="form-grid">
         <div class="form-group">
           <label for="nombre">Nombre completo *</label>
-          <input
-            id="nombre"
-            type="text"
-            formControlName="nombre"
-            placeholder="Ej: Carlos Andrés López"
-            autocomplete="name"
-          />
+          <input id="nombre" type="text" formControlName="nombre" placeholder="Ej: Carlos López" autocomplete="name" />
           @if (f.nombre.touched && f.nombre.errors) {
             <span class="form-error">
               @if (f.nombre.errors['required']) { El nombre es obligatorio. }
-              @else if (f.nombre.errors['minlength']) { Mínimo 2 caracteres. }
+              @else { Mínimo 2 caracteres. }
             </span>
           }
         </div>
 
         <div class="form-group">
-          <label for="documento">Documento de identidad *</label>
-          <input
-            id="documento"
-            type="text"
-            formControlName="documento"
-            placeholder="Ej: 1001234567"
-            autocomplete="off"
-          />
+          <label for="documento">Documento *</label>
+          <input id="documento" type="text" formControlName="documento" placeholder="Ej: 1001234567" inputmode="numeric" autocomplete="off" />
           @if (f.documento.touched && f.documento.errors) {
             <span class="form-error">
               @if (f.documento.errors['required']) { El documento es obligatorio. }
-              @else if (f.documento.errors['minlength']) { Mínimo 5 caracteres. }
+              @else { Mínimo 5 caracteres. }
             </span>
           }
         </div>
 
         <div class="form-group">
           <label for="cargo">Cargo</label>
-          <input
-            id="cargo"
-            type="text"
-            formControlName="cargo"
-            placeholder="Ej: Desarrollador Frontend"
-            autocomplete="organization-title"
-          />
+          <input id="cargo" type="text" formControlName="cargo" placeholder="Ej: Desarrollador" autocomplete="off" />
         </div>
 
         <div class="form-group">
           <label for="valor_hora">Valor hora (COP) *</label>
-          <input
-            id="valor_hora"
-            type="number"
-            formControlName="valor_hora"
-            placeholder="5000"
-            min="1"
-          />
+          <input id="valor_hora" type="number" formControlName="valor_hora" min="1" inputmode="numeric" />
           @if (f.valor_hora.touched && f.valor_hora.errors) {
-            <span class="form-error">
-              @if (f.valor_hora.errors['required']) { El valor hora es obligatorio. }
-              @else if (f.valor_hora.errors['min']) { Debe ser mayor a 0. }
-            </span>
+            <span class="form-error">Debe ser mayor a 0.</span>
           }
         </div>
       </div>
 
+      @if (!isEditMode) {
+        <div class="credentials">
+          <h3 class="credentials__title">Acceso del colaborador</h3>
+          <p class="credentials__hint">
+            Se crea una cuenta con rol colaborador. Comparte estas credenciales con la persona.
+          </p>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="email">Correo electrónico *</label>
+              <input id="email" type="email" formControlName="email" placeholder="persona@ejemplo.com" inputmode="email" autocomplete="off" />
+              @if (f.email.touched && f.email.errors) {
+                <span class="form-error">
+                  @if (f.email.errors['required']) { El correo es obligatorio. }
+                  @else { Ingresa un correo válido. }
+                </span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="password">Contraseña inicial *</label>
+              <input id="password" type="text" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="off" />
+              @if (f.password.touched && f.password.errors) {
+                <span class="form-error">
+                  @if (f.password.errors['required']) { La contraseña es obligatoria. }
+                  @else { Mínimo 6 caracteres. }
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
       <div class="form-actions">
-        <a class="btn-ghost" routerLink="/empleados">Cancelar</a>
-        <button
-          type="submit"
-          class="btn-primary"
-          [disabled]="state() === 'loading'"
-        >
+        <button type="submit" class="btn-primary btn-lg" [disabled]="state() === 'loading'">
           @if (state() === 'loading') {
             <app-loading-spinner [size]="18" [inline]="true" />
             Guardando...
           } @else {
-            {{ isEditMode ? 'Actualizar' : 'Crear Empleado' }}
+            {{ isEditMode ? 'Actualizar empleado' : 'Crear empleado' }}
           }
         </button>
       </div>

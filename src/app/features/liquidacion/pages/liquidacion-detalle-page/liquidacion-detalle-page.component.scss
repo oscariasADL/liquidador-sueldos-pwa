@@ -1,0 +1,284 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.payslip {
+  max-width: 820px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-4;
+    flex-wrap: wrap;
+    padding-bottom: $space-4;
+    border-bottom: 1px solid $glass-border;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-md;
+    background: $color-primary;
+    color: $text-on-primary;
+    font-size: $font-size-lg;
+  }
+
+  &__app {
+    display: block;
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+  }
+
+  &__doc {
+    display: block;
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+
+    @include mobile {
+      text-align: left;
+    }
+  }
+
+  &__id {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  &__date {
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+
+  // Employee info
+  &__info {
+    display: grid;
+    gap: $space-4;
+    grid-template-columns: 1fr;
+    padding: $space-5 0;
+    border-bottom: 1px solid $glass-border;
+
+    @include tablet-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: $font-size-xs;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__value {
+    font-size: $font-size-base;
+    color: $text-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  // Detail
+  &__detail {
+    padding: $space-5 0;
+  }
+
+  &__section-title {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $space-3;
+  }
+
+  &__table {
+    display: none;
+
+    @include tablet-up {
+      display: block;
+    }
+  }
+
+  &__cards {
+    @include tablet-up {
+      display: none;
+    }
+  }
+
+  // Totals
+  &__totals {
+    padding: $space-5;
+    margin-top: $space-2;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: $radius-md;
+  }
+
+  &__total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    padding: $space-2 0;
+    flex-wrap: wrap;
+
+    span {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+
+    strong {
+      font-size: $font-size-base;
+      color: $text-primary;
+    }
+
+    &--net {
+      margin-top: $space-2;
+      padding-top: $space-3;
+      border-top: 1px solid $glass-border;
+
+      span {
+        font-size: $font-size-base;
+        font-weight: $font-weight-bold;
+        color: $text-primary;
+      }
+
+      strong {
+        font-size: $font-size-2xl;
+        font-weight: $font-weight-bold;
+        color: $color-success;
+        line-height: 1.1;
+      }
+    }
+  }
+
+  &__notes {
+    padding-top: $space-5;
+
+    p {
+      margin-top: $space-1;
+      font-size: $font-size-sm;
+      color: $text-secondary;
+    }
+  }
+
+  // Signatures — mainly for the printed sheet
+  &__footer {
+    display: none;
+    gap: $space-8;
+    margin-top: $space-10;
+  }
+
+  &__signature {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+  }
+
+  &__sign-line {
+    display: block;
+    border-top: 1px solid #999999;
+  }
+
+  &__sign-label {
+    font-size: $font-size-xs;
+    color: $text-muted;
+    text-align: center;
+  }
+}
+
+// ============================================
+// ADMIN ACTIONS
+// ============================================
+
+.detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-3;
+  margin-top: $space-5;
+
+  @include mobile {
+    .btn-primary,
+    .btn-ghost {
+      width: 100%;
+    }
+  }
+
+  &__sync {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+}
+
+.sync-error {
+  margin-top: $space-2;
+  font-size: $font-size-xs;
+  color: $color-error;
+}
+
+// ============================================
+// PRINT
+// ============================================
+
+@media print {
+  .payslip {
+    max-width: none;
+
+    &__footer {
+      display: flex;
+    }
+
+    // Always print the tabular breakdown, never the mobile cards
+    &__table {
+      display: block !important;
+    }
+
+    &__cards {
+      display: none !important;
+    }
+
+    &__totals {
+      background: #f5f5f5 !important;
+      border: 1px solid #dddddd !important;
+    }
+
+    &__header,
+    &__info,
+    &__total-row--net {
+      border-color: #cccccc !important;
+    }
+
+    &__logo {
+      background: #333333 !important;
+      color: #ffffff !important;
+    }
+
+    &__sign-label {
+      color: #555555 !important;
+    }
+  }
+}

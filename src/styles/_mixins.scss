@@ -61,16 +61,21 @@
 @mixin input-base {
   width: 100%;
   max-width: 100%;
+  min-height: 48px;
   padding: $space-3 $space-4;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid $glass-border;
   border-radius: $radius-md;
   color: $text-primary;
   font-family: $font-family;
-  font-size: $font-size-base;
+  // 16px minimum prevents iOS Safari from zooming in on focus
+  font-size: 1rem;
+  line-height: 1.4;
   transition: border-color $transition-fast, box-shadow $transition-fast;
   outline: none;
   box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
 
   &::placeholder {
     color: $text-muted;

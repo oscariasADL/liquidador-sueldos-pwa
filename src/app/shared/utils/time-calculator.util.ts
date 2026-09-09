@@ -35,8 +35,29 @@ export function isOvertime(horas: number): boolean {
 }
 
 /**
- * Gets today's date in YYYY-MM-DD format.
+ * Gets today's date in YYYY-MM-DD format using local time, so the date shown
+ * matches the user's calendar day rather than UTC.
  */
 export function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return toLocalISO(new Date());
+}
+
+/** Date N days before today, in YYYY-MM-DD format. */
+export function daysAgoISO(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return toLocalISO(date);
+}
+
+/** First day of the current month, in YYYY-MM-DD format. */
+export function firstDayOfMonthISO(): string {
+  const now = new Date();
+  return toLocalISO(new Date(now.getFullYear(), now.getMonth(), 1));
+}
+
+function toLocalISO(date: Date): string {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

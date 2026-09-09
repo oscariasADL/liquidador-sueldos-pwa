@@ -29,20 +29,37 @@ select {
 
 textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 88px;
 }
 
 select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  padding-right: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
+  background-position: right $space-4 center;
+  background-size: 16px 16px;
+  cursor: pointer;
+
+  // Native dropdown list inherits colors from the OS, force readable values
+  option {
+    background: $bg-secondary;
+    color: $text-primary;
+  }
+}
+
+// Date/time pickers render a dark native icon on dark backgrounds
+input[type='date'],
+input[type='time'] {
+  &::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+    padding: $space-1;
+  }
 }
 
 label {
   display: block;
-  margin-bottom: $space-1;
+  margin-bottom: $space-2;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   color: $text-secondary;
@@ -67,12 +84,13 @@ label {
 .btn-sm {
   padding: $space-2 $space-4;
   font-size: $font-size-xs;
-  min-height: 36px;
+  min-height: 40px;
 }
 
 .btn-lg {
   padding: $space-4 $space-8;
   font-size: $font-size-base;
+  min-height: 52px;
 }
 
 .btn-block {
@@ -115,13 +133,26 @@ label {
       font-size: $font-size-xl;
     }
   }
+
+  @include mobile {
+    .btn-primary,
+    .btn-ghost {
+      width: 100%;
+    }
+  }
+}
+
+.page-subtitle {
+  margin-top: -#{$space-4};
+  margin-bottom: $space-6;
+  color: $text-muted;
+  font-size: $font-size-sm;
 }
 
 .card {
   @include glass-card-static;
   padding: $space-6;
   min-width: 0;
-  overflow: hidden;
 
   @include mobile {
     padding: $space-4;
@@ -130,12 +161,36 @@ label {
 
 .form-group {
   margin-bottom: $space-4;
+  min-width: 0;
 }
 
 .form-error {
+  display: block;
   font-size: $font-size-xs;
   color: $color-error;
   margin-top: $space-1;
+}
+
+.form-hint {
+  display: block;
+  font-size: $font-size-xs;
+  color: $text-muted;
+  margin-top: $space-1;
+}
+
+.empty-state {
+  text-align: center;
+  padding: $space-10 $space-4;
+
+  &__icon {
+    font-size: 2.5rem;
+    margin-bottom: $space-3;
+  }
+
+  p {
+    color: $text-muted;
+    margin-bottom: $space-4;
+  }
 }
 
 .grid {
@@ -164,10 +219,6 @@ label {
 
   &.grid-4 {
     grid-template-columns: 1fr;
-
-    @include mobile {
-      grid-template-columns: 1fr;
-    }
 
     @include tablet-up {
       grid-template-columns: repeat(2, 1fr);
@@ -208,6 +259,8 @@ label {
 .table-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  margin: 0 -#{$space-2};
+  padding: 0 $space-2;
 }
 
 table.data-table {
@@ -236,7 +289,118 @@ table.data-table {
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   }
 
+  tr:last-child td {
+    border-bottom: none;
+  }
+
   tr:hover td {
     background: rgba(255, 255, 255, 0.03);
   }
+}
+
+// Stacked card layout for tabular data on small screens
+.data-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.data-list__item {
+  padding: $space-4;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid $glass-border;
+  border-radius: $radius-md;
+
+  &--highlight {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.06);
+  }
+}
+
+.data-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-1 0;
+
+  dt,
+  .label {
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+
+  dd,
+  .value {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $text-primary;
+    text-align: right;
+  }
+}
+
+// ============================================
+// PRINT — payslip output
+// ============================================
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  app-navbar,
+  app-toast,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  .container {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .card,
+  .print-sheet {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 0 !important;
+    color: #000000 !important;
+  }
+
+  h1, h2, h3, h4, small, p, span, td, th, dt, dd, strong {
+    color: #000000 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  table.data-table {
+    th, td {
+      border-bottom: 1px solid #dddddd !important;
+      color: #000000 !important;
+    }
+  }
+
+  .table-wrapper {
+    overflow: visible !important;
+  }
+}
+
+.print-only {
+  display: none;
 }

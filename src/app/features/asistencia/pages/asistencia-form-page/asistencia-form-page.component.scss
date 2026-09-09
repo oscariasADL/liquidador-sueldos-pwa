@@ -1,0 +1,48 @@
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+
+.form-card {
+  max-width: 560px;
+}
+
+.time-row {
+  display: grid;
+  gap: $space-3;
+  grid-template-columns: 1fr 1fr;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.hours-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-4;
+  margin: $space-2 0 $space-5;
+  background: $color-primary-light;
+  border-radius: $radius-md;
+
+  &__label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+
+  &__value {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    line-height: 1;
+  }
+
+  &--overtime {
+    background: $color-warning-light;
+
+    .hours-preview__value {
+      color: $color-warning;
+    }
+  }
+}

@@ -1,83 +1,102 @@
 @use 'styles/variables' as *;
 @use 'styles/mixins' as *;
 
-.asistencia-layout {
-  display: grid;
-  gap: $space-6;
-  grid-template-columns: 1fr;
+.filters {
+  margin-bottom: $space-4;
 
-  @include desktop {
-    grid-template-columns: 380px 1fr;
-    align-items: start;
-  }
-}
-
-.form-section {
-  h3 {
-    margin-bottom: $space-4;
-    font-size: $font-size-lg;
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
+  &__grid {
+    display: grid;
     gap: $space-3;
+    grid-template-columns: 1fr;
+    margin-bottom: $space-3;
+
+    @include tablet-up {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .form-group {
+    margin-bottom: 0;
   }
 }
 
-.time-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-3;
+.summary-grid {
+  margin-bottom: $space-4;
 }
 
-.hours-preview {
+.metric-mini {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $space-3 $space-4;
-  background: $color-primary-light;
-  border-radius: $radius-md;
-  margin-top: $space-2;
+  flex-direction: column;
+  gap: $space-1;
 
   &__label {
-    font-size: $font-size-sm;
-    color: $text-secondary;
+    font-size: $font-size-xs;
+    color: $text-muted;
   }
 
   &__value {
-    font-size: $font-size-xl;
+    font-size: $font-size-2xl;
     font-weight: $font-weight-bold;
-    color: $color-primary;
-  }
+    line-height: 1.1;
 
-  &.overtime {
-    background: $color-warning-light;
-
-    .hours-preview__value {
-      color: $color-warning;
+    &--accent {
+      color: $color-success;
     }
   }
 }
 
-.form-actions {
-  display: flex;
-  gap: $space-3;
-  margin-top: $space-2;
-}
+// Table on tablet and up, cards on mobile
+.records-table {
+  display: none;
 
-.table-section {
-  h3 {
-    margin-bottom: $space-4;
-    font-size: $font-size-lg;
+  @include tablet-up {
+    display: block;
   }
 }
 
-.overtime-row td {
-  background: rgba(245, 158, 11, 0.05) !important;
+.records-cards {
+  @include tablet-up {
+    display: none;
+  }
 }
 
-.overtime-badge {
+.record-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+  padding-bottom: $space-3;
+  margin-bottom: $space-2;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  &__date {
+    display: block;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  &__emp {
+    display: block;
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+
+  &__hours {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $color-success;
+    white-space: nowrap;
+  }
+}
+
+.overtime-text {
   color: $color-warning;
   font-weight: $font-weight-semibold;
+}
+
+.data-list__item {
+  a.btn-block {
+    margin-top: $space-3;
+  }
 }

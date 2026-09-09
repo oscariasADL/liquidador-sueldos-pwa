@@ -1,12 +1,20 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserRole } from '../../../core/models/profile.model';
 
 interface NavItem {
   label: string;
   path: string;
-  icon: string;
+  roles: UserRole[];
 }
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
+  { label: 'Empleados', path: '/empleados', roles: ['admin'] },
+  { label: 'Asistencia', path: '/asistencia', roles: ['admin', 'colaborador'] },
+  { label: 'Liquidación', path: '/liquidacion', roles: ['admin', 'colaborador'] },
+];
 
 @Component({
   selector: 'app-navbar',
@@ -20,12 +28,18 @@ export class NavbarComponent {
 
   menuOpen = signal(false);
 
-  navItems: NavItem[] = [
-    { label: 'Dashboard', path: '/dashboard', icon: 'layout-dashboard' },
-    { label: 'Empleados', path: '/empleados', icon: 'users' },
-    { label: 'Asistencia', path: '/asistencia', icon: 'clock' },
-    { label: 'Liquidación', path: '/liquidacion', icon: 'calculator' },
-  ];
+  readonly role = this.authService.role;
+  readonly isAdmin = this.authService.isAdmin;
+
+  readonly navItems = computed(() => {
+    const currentRole = this.role();
+    if (!currentRole) return [];
+    return NAV_ITEMS.filter((item) => item.roles.includes(currentRole));
+  });
+
+  readonly homeRoute = computed(() => (this.isAdmin() ? '/dashboard' : '/asistencia'));
+
+  readonly roleLabel = computed(() => (this.isAdmin() ? 'Administrador' : 'Colaborador'));
 
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
@@ -36,6 +50,7 @@ export class NavbarComponent {
   }
 
   logout(): void {
-    this.authService.signOut();
+    this.closeMenu();
+    void this.authService.signOut();
   }
 }

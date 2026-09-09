@@ -1,15 +1,19 @@
 <nav class="navbar">
   <div class="navbar__container">
-    <a class="navbar__brand" routerLink="/dashboard" (click)="closeMenu()">
-      <span class="navbar__logo">$</span>
-      <span class="navbar__title">LiquidApp</span>
+    <a class="navbar__brand" [routerLink]="homeRoute()" (click)="closeMenu()">
+      <span class="navbar__logo" aria-hidden="true">◈</span>
+      <span class="navbar__titles">
+        <span class="navbar__title">OrigamiApp</span>
+        <span class="navbar__role">{{ roleLabel() }}</span>
+      </span>
     </a>
 
     <button
       class="navbar__toggle"
+      type="button"
       (click)="toggleMenu()"
       [attr.aria-expanded]="menuOpen()"
-      aria-label="Abrir menú de navegación"
+      [attr.aria-label]="menuOpen() ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'"
     >
       <span class="navbar__toggle-line" [class.active]="menuOpen()"></span>
       <span class="navbar__toggle-line" [class.active]="menuOpen()"></span>
@@ -18,7 +22,7 @@
 
     <div class="navbar__menu" [class.open]="menuOpen()">
       <ul class="navbar__links">
-        @for (item of navItems; track item.path) {
+        @for (item of navItems(); track item.path) {
           <li>
             <a
               class="navbar__link"
@@ -32,7 +36,7 @@
         }
       </ul>
 
-      <button class="navbar__logout" (click)="logout()">
+      <button class="navbar__logout" type="button" (click)="logout()">
         Cerrar sesión
       </button>
     </div>

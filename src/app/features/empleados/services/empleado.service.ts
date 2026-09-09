@@ -33,26 +33,30 @@ export class EmpleadoService {
       .from('empleados')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
     return data;
   }
 
+  /**
+   * Creates the employee through the create-empleado Edge Function, which also
+   * provisions the auth account and the colaborador profile. Direct inserts are
+   * not used because creating an auth user requires the service_role key.
+   */
   async create(empleado: EmpleadoCreate): Promise<Empleado> {
-    const { data, error } = await this.supabase
-      .from('empleados')
-      .insert(empleado)
-      .select()
-      .single();
+    const { data, error } = await this.supabase.functions.invoke('create-empleado', {
+      body: empleado,
+    });
 
     if (error) {
-      if (error.code === '23505') {
-        throw new Error('Ya existe un empleado con ese documento.');
-      }
-      throw new Error(error.message);
+      const detail = await this.extractFunctionError(error);
+      throw new Error(detail);
     }
-    return data;
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+    return data.empleado as Empleado;
   }
 
   async update(id: string, changes: EmpleadoUpdate): Promise<Empleado> {
@@ -98,5 +102,19 @@ export class EmpleadoService {
 
     if (error) throw new Error(error.message);
     return count ?? 0;
+  }
+
+  /** Edge Function errors carry the useful message inside the response body. */
+  private async extractFunctionError(error: unknown): Promise<string> {
+    const ctx = (error as { context?: Response }).context;
+    if (ctx && typeof ctx.json === 'function') {
+      try {
+        const body = await ctx.json();
+        if (body?.error) return body.error;
+      } catch {
+        // Body was not JSON — fall through to the generic message
+      }
+    }
+    return error instanceof Error ? error.message : 'No se pudo crear el empleado.';
   }
 }

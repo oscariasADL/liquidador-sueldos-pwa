@@ -1,0 +1,163 @@
+<app-back-button to="/liquidacion" label="Volver a liquidaciones" />
+
+@if (state() === 'loading') {
+  <app-loading-spinner />
+} @else if (state() === 'error' || !liquidacion()) {
+  <div class="card empty-state">
+    <p class="text-error">No se encontró la liquidación.</p>
+  </div>
+} @else {
+  @let liq = liquidacion()!;
+
+  <div class="page-header no-print">
+    <h1>Desprendible de pago</h1>
+    <button class="btn-primary" type="button" (click)="print()">🖨 Imprimir</button>
+  </div>
+
+  <!-- Payslip -->
+  <div class="card payslip print-sheet">
+    <header class="payslip__header">
+      <div class="payslip__brand">
+        <span class="payslip__logo" aria-hidden="true">◈</span>
+        <div>
+          <span class="payslip__app">OrigamiApp</span>
+          <span class="payslip__doc">Desprendible de pago</span>
+        </div>
+      </div>
+      <div class="payslip__meta">
+        <span class="payslip__id">N° {{ liq.id.slice(0, 8).toUpperCase() }}</span>
+        <span class="payslip__date">Emitido: {{ liq.created_at.slice(0, 10) }}</span>
+      </div>
+    </header>
+
+    <section class="payslip__info">
+      <div class="payslip__field">
+        <span class="payslip__label">Colaborador</span>
+        <span class="payslip__value">{{ liq.empleado?.nombre || '—' }}</span>
+      </div>
+      <div class="payslip__field">
+        <span class="payslip__label">Documento</span>
+        <span class="payslip__value">{{ liq.empleado?.documento || '—' }}</span>
+      </div>
+      <div class="payslip__field">
+        <span class="payslip__label">Período liquidado</span>
+        <span class="payslip__value">{{ liq.fecha_inicio }} al {{ liq.fecha_fin }}</span>
+      </div>
+      <div class="payslip__field">
+        <span class="payslip__label">Estado</span>
+        <span class="payslip__value">
+          <span class="no-print"><app-status-badge [status]="liq.estado" /></span>
+          <span class="print-only">{{ liq.estado }}</span>
+        </span>
+      </div>
+    </section>
+
+    @if (desglose().length > 0) {
+      <section class="payslip__detail">
+        <h2 class="payslip__section-title">Detalle de jornadas</h2>
+
+        <!-- Table: desktop and print -->
+        <div class="table-wrapper payslip__table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Entrada</th>
+                <th>Salida</th>
+                <th>Almuerzo</th>
+                <th>Horas</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (d of desglose(); track d.fecha) {
+                <tr>
+                  <td>{{ d.fecha }}</td>
+                  <td>{{ d.hora_entrada }}</td>
+                  <td>{{ d.hora_salida }}</td>
+                  <td>{{ d.minutos_almuerzo }}m</td>
+                  <td>{{ d.horas_trabajadas | hoursFormat }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards: mobile only -->
+        <div class="payslip__cards data-list">
+          @for (d of desglose(); track d.fecha) {
+            <div class="data-list__item">
+              <div class="data-list__row">
+                <span class="label">{{ d.fecha }}</span>
+                <span class="value">{{ d.horas_trabajadas | hoursFormat }}</span>
+              </div>
+              <div class="data-list__row">
+                <span class="label">Jornada</span>
+                <span class="value">{{ d.hora_entrada }} — {{ d.hora_salida }}</span>
+              </div>
+              <div class="data-list__row">
+                <span class="label">Almuerzo</span>
+                <span class="value">{{ d.minutos_almuerzo }} min</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <section class="payslip__totals">
+      <div class="payslip__total-row">
+        <span>Total horas trabajadas</span>
+        <strong>{{ liq.total_horas | hoursFormat }}</strong>
+      </div>
+      <div class="payslip__total-row">
+        <span>Valor hora</span>
+        <strong>{{ liq.valor_hora | currencyCop }}</strong>
+      </div>
+      <div class="payslip__total-row payslip__total-row--net">
+        <span>Neto a pagar</span>
+        <strong>{{ liq.total_pagar | currencyCop }}</strong>
+      </div>
+    </section>
+
+    @if (liq.notas) {
+      <section class="payslip__notes">
+        <span class="payslip__label">Notas</span>
+        <p>{{ liq.notas }}</p>
+      </section>
+    }
+
+    <footer class="payslip__footer">
+      <div class="payslip__signature">
+        <span class="payslip__sign-line"></span>
+        <span class="payslip__sign-label">Firma del empleador</span>
+      </div>
+      <div class="payslip__signature">
+        <span class="payslip__sign-line"></span>
+        <span class="payslip__sign-label">Firma del colaborador</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Admin actions -->
+  @if (isAdmin()) {
+    <div class="detail-actions no-print">
+      @if (liq.estado === 'pendiente') {
+        <button class="btn-primary" type="button" [disabled]="actionState() === 'loading'" (click)="marcarPagado()">
+          Marcar como pagado
+        </button>
+      }
+      @if (liq.sheets_sync_status !== 'synced') {
+        <button class="btn-ghost" type="button" [disabled]="actionState() === 'loading'" (click)="retrySheetsSync()">
+          Reintentar envío a Google Sheets
+        </button>
+      }
+      <span class="detail-actions__sync">
+        Google Sheets: <app-status-badge [status]="liq.sheets_sync_status" />
+      </span>
+    </div>
+
+    @if (liq.sheets_sync_error) {
+      <p class="sync-error no-print">Último error: {{ liq.sheets_sync_error }}</p>
+    }
+  }
+}

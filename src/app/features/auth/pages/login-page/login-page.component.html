@@ -1,9 +1,9 @@
 <div class="login-wrapper">
   <div class="login-card">
     <div class="login-header">
-      <div class="login-logo">$</div>
-      <h1>LiquidApp</h1>
-      <p>Liquidador de Sueldos</p>
+      <div class="login-logo" aria-hidden="true">◈</div>
+      <h1>OrigamiApp</h1>
+      <p>Registro de asistencia y liquidación</p>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
@@ -13,8 +13,9 @@
           id="email"
           type="email"
           formControlName="email"
-          placeholder="admin@ejemplo.com"
+          placeholder="tucorreo@ejemplo.com"
           autocomplete="email"
+          inputmode="email"
         />
         @if (f.email.touched && f.email.errors) {
           <span class="form-error">

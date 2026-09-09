@@ -3,43 +3,90 @@
 
 .liquidacion-layout {
   display: grid;
-  gap: $space-6;
+  gap: $space-5;
   grid-template-columns: 1fr;
+  align-items: start;
 
   @include desktop {
-    grid-template-columns: 380px 1fr;
-    align-items: start;
+    grid-template-columns: 360px 1fr;
+  }
+
+  &--single {
+    @include desktop {
+      grid-template-columns: 1fr;
+    }
   }
 }
 
 .form-section {
   min-width: 0;
-  overflow: hidden;
 
   h3 {
     margin-bottom: $space-4;
     font-size: $font-size-lg;
   }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: $space-3;
-  }
 }
 
 .date-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: $space-3;
+  grid-template-columns: 1fr 1fr;
 
   @include mobile {
     grid-template-columns: 1fr;
+    gap: 0;
   }
 }
 
-.overtime-row td {
-  background: rgba(245, 158, 11, 0.05) !important;
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+  min-width: 0;
+
+  h3 {
+    margin-bottom: $space-4;
+    font-size: $font-size-lg;
+  }
+}
+
+// Table from tablet up, cards on mobile
+.desglose-table {
+  display: none;
+
+  @include tablet-up {
+    display: block;
+  }
+}
+
+.desglose-cards {
+  @include tablet-up {
+    display: none;
+  }
+}
+
+.desglose-card {
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+    padding-bottom: $space-2;
+    margin-bottom: $space-2;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  &__date {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  &__hours {
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    color: $color-success;
+  }
 }
 
 .overtime-text {
@@ -48,15 +95,16 @@
 }
 
 .summary {
-  margin-top: $space-4;
+  margin-top: $space-5;
   padding: $space-4;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: $radius-md;
 
   &__row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
     padding: $space-2 0;
 
     span {
@@ -73,6 +121,7 @@
       padding-top: $space-3;
       margin-top: $space-2;
       border-top: 1px solid $glass-border;
+      flex-wrap: wrap;
 
       span {
         font-weight: $font-weight-bold;
@@ -83,8 +132,77 @@
       strong {
         color: $color-success;
         font-size: $font-size-2xl;
-        font-weight: $font-weight-bold;
+        line-height: 1.1;
       }
     }
+  }
+}
+
+.confirm-btn {
+  margin-top: $space-5;
+}
+
+// ============================================
+// HISTORIAL
+// ============================================
+
+.historial {
+  &__item {
+    display: block;
+    text-decoration: none;
+    transition: background $transition-fast, border-color $transition-fast;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: $space-3;
+    margin-bottom: $space-3;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    @include truncate;
+  }
+
+  &__period {
+    font-size: $font-size-xs;
+    color: $text-muted;
+  }
+
+  &__amount {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $color-success;
+    white-space: nowrap;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: $space-2;
+  }
+
+  &__hours {
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: $radius-full;
   }
 }

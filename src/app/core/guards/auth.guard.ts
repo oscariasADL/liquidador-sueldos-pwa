@@ -2,31 +2,37 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
-export const authGuard: CanActivateFn = () => {
+/** Requires an authenticated user with a valid profile. */
+export const authGuard: CanActivateFn = async () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Wait for initial auth check to complete
-  if (authService.isLoading()) {
-    return new Promise<boolean>((resolve) => {
-      const interval = setInterval(() => {
-        if (!authService.isLoading()) {
-          clearInterval(interval);
-          if (authService.isAuthenticated) {
-            resolve(true);
-          } else {
-            router.navigate(['/login']);
-            resolve(false);
-          }
-        }
-      }, 50);
-    });
-  }
+  await authService.whenReady();
 
-  if (authService.isAuthenticated) {
+  if (authService.isAuthenticated && authService.profile()) {
     return true;
   }
 
   router.navigate(['/login']);
+  return false;
+};
+
+/** Requires the admin role. Colaboradores are redirected to their home. */
+export const adminGuard: CanActivateFn = async () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  await authService.whenReady();
+
+  if (!authService.isAuthenticated || !authService.profile()) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  if (authService.isAdmin()) {
+    return true;
+  }
+
+  router.navigate([authService.homeRoute()]);
   return false;
 };

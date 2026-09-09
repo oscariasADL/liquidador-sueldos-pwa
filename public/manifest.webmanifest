@@ -1,6 +1,7 @@
 {
-  "name": "Liquidador de Sueldos",
-  "short_name": "LiquidApp",
+  "name": "OrigamiApp",
+  "short_name": "OrigamiApp",
+  "description": "Registro de asistencia y liquidación de sueldos",
   "theme_color": "#0f172a",
   "background_color": "#0f172a",
   "display": "standalone",

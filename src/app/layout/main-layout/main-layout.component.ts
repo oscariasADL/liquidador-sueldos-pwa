@@ -19,8 +19,9 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
   styles: `
     .main-content {
       padding-top: 1.5rem;
-      padding-bottom: 2rem;
-      min-height: calc(100vh - 64px);
+      // Extra bottom padding keeps the last card clear of the viewport edge
+      // and of iOS home-indicator safe areas.
+      padding-bottom: calc(3rem + env(safe-area-inset-bottom));
     }
   `,
 })

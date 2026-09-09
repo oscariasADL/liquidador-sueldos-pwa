@@ -1,0 +1,81 @@
+<app-back-button to="/asistencia" label="Volver a registros" />
+
+<div class="page-header">
+  <h1>{{ pageTitle }}</h1>
+</div>
+
+@if (loadState() === 'loading') {
+  <app-loading-spinner />
+} @else {
+  <div class="card form-card">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      @if (isAdmin()) {
+        <div class="form-group">
+          <label for="empleado">Empleado *</label>
+          <select id="empleado" formControlName="empleado_id">
+            <option value="">— Seleccionar —</option>
+            @for (emp of empleados(); track emp.id) {
+              <option [value]="emp.id">{{ emp.nombre }} ({{ emp.documento }})</option>
+            }
+          </select>
+          @if (f.empleado_id.touched && f.empleado_id.errors?.['required']) {
+            <span class="form-error">Selecciona un empleado.</span>
+          }
+          @if (isEditMode) {
+            <span class="form-hint">El empleado no se puede cambiar al editar.</span>
+          }
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="fecha">Fecha *</label>
+        <input id="fecha" type="date" formControlName="fecha" />
+        @if (isEditMode) {
+          <span class="form-hint">La fecha no se puede cambiar al editar.</span>
+        }
+      </div>
+
+      <div class="time-row">
+        <div class="form-group">
+          <label for="hora_entrada">Entrada *</label>
+          <input id="hora_entrada" type="time" formControlName="hora_entrada" />
+        </div>
+        <div class="form-group">
+          <label for="hora_salida">Salida *</label>
+          <input id="hora_salida" type="time" formControlName="hora_salida" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="almuerzo">Almuerzo (minutos) *</label>
+        <input id="almuerzo" type="number" formControlName="minutos_almuerzo" min="0" max="240" inputmode="numeric" />
+        @if (f.minutos_almuerzo.touched && f.minutos_almuerzo.errors) {
+          <span class="form-error">Ingresa un valor entre 0 y 240 minutos.</span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas</label>
+        <input id="notas" type="text" formControlName="notas" placeholder="Opcional" />
+      </div>
+
+      <div class="hours-preview" [class.hours-preview--overtime]="horasCalculadas() > 8">
+        <span class="hours-preview__label">Horas efectivas</span>
+        <span class="hours-preview__value">{{ horasCalculadas() | hoursFormat }}</span>
+      </div>
+
+      <button
+        type="submit"
+        class="btn-primary btn-block btn-lg"
+        [disabled]="submitState() === 'loading'"
+      >
+        @if (submitState() === 'loading') {
+          <app-loading-spinner [size]="18" [inline]="true" />
+          Guardando...
+        } @else {
+          {{ isEditMode ? 'Actualizar registro' : 'Registrar asistencia' }}
+        }
+      </button>
+    </form>
+  </div>
+}

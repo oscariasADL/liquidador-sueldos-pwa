@@ -26,9 +26,13 @@ export default class LoginPageComponent {
   });
 
   constructor() {
-    // Redirect if already authenticated
-    if (this.authService.isAuthenticated) {
-      this.router.navigate(['/dashboard']);
+    void this.redirectIfAuthenticated();
+  }
+
+  private async redirectIfAuthenticated(): Promise<void> {
+    await this.authService.whenReady();
+    if (this.authService.isAuthenticated && this.authService.profile()) {
+      this.router.navigate([this.authService.homeRoute()]);
     }
   }
 
@@ -42,7 +46,7 @@ export default class LoginPageComponent {
     this.errorMessage.set(null);
 
     const { email, password } = this.loginForm.getRawValue();
-    const { error } = await this.authService.signIn(email, password);
+    const { error } = await this.authService.signIn(email.trim(), password);
 
     if (error) {
       this.state.set('error');

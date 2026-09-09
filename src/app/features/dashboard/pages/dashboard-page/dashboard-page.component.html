@@ -1,0 +1,102 @@
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <span class="text-muted">{{ today }}</span>
+</div>
+
+@if (state() === 'error') {
+  <div class="card" style="text-align: center;">
+    <p class="text-error">No se pudieron cargar las métricas.</p>
+    <button class="btn-ghost" style="margin-top: 1rem;" (click)="loadMetrics()">Reintentar</button>
+  </div>
+}
+
+<div class="grid grid-4">
+  <div class="card metric">
+    <div class="metric__icon metric__icon--blue" aria-hidden="true">👥</div>
+    <div class="metric__body">
+      <span class="metric__label">Empleados activos</span>
+      @if (state() === 'loading') {
+        <app-loading-spinner [size]="20" [inline]="true" />
+      } @else {
+        <span class="metric__value">{{ empleadosActivos() }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="card metric">
+    <div class="metric__icon metric__icon--green" aria-hidden="true">🕒</div>
+    <div class="metric__body">
+      <span class="metric__label">Asistencias hoy</span>
+      @if (state() === 'loading') {
+        <app-loading-spinner [size]="20" [inline]="true" />
+      } @else {
+        <span class="metric__value">{{ asistenciasHoy() }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="card metric">
+    <div class="metric__icon metric__icon--amber" aria-hidden="true">⏳</div>
+    <div class="metric__body">
+      <span class="metric__label">Liquidaciones pendientes</span>
+      @if (state() === 'loading') {
+        <app-loading-spinner [size]="20" [inline]="true" />
+      } @else {
+        <span class="metric__value">{{ pendientes().count }}</span>
+        <span class="metric__hint">{{ pendientes().total | currencyCop }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="card metric">
+    <div class="metric__icon metric__icon--cyan" aria-hidden="true">💰</div>
+    <div class="metric__body">
+      <span class="metric__label">Total liquidado (mes)</span>
+      @if (state() === 'loading') {
+        <app-loading-spinner [size]="20" [inline]="true" />
+      } @else {
+        <span class="metric__value">{{ totalMes() | currencyCop }}</span>
+      }
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Acciones</h2>
+
+<div class="actions">
+  <a class="action action--primary" routerLink="/asistencia/registrar">
+    <span class="action__icon" aria-hidden="true">＋</span>
+    <span class="action__body">
+      <span class="action__title">Registrar asistencia</span>
+      <span class="action__desc">Marcar entrada, salida y almuerzo del día</span>
+    </span>
+    <span class="action__arrow" aria-hidden="true">→</span>
+  </a>
+
+  <a class="action" routerLink="/liquidacion">
+    <span class="action__icon" aria-hidden="true">🧾</span>
+    <span class="action__body">
+      <span class="action__title">Liquidar sueldos</span>
+      <span class="action__desc">Calcular pago por período y generar desprendible</span>
+    </span>
+    <span class="action__arrow" aria-hidden="true">→</span>
+  </a>
+
+  <a class="action" routerLink="/empleados">
+    <span class="action__icon" aria-hidden="true">👤</span>
+    <span class="action__body">
+      <span class="action__title">Gestionar empleados</span>
+      <span class="action__desc">Crear, editar y desactivar colaboradores</span>
+    </span>
+    <span class="action__arrow" aria-hidden="true">→</span>
+  </a>
+
+  <a class="action" routerLink="/asistencia">
+    <span class="action__icon" aria-hidden="true">📋</span>
+    <span class="action__body">
+      <span class="action__title">Ver registros de asistencia</span>
+      <span class="action__desc">Historial completo con filtros por empleado</span>
+    </span>
+    <span class="action__arrow" aria-hidden="true">→</span>
+  </a>
+</div>
