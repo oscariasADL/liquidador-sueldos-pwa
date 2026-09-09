@@ -1,6 +1,6 @@
-# Liquidador de Sueldos — PWA
+# OrigamiApp
 
-Aplicación web progresiva para la gestión de asistencia y liquidación de sueldos de empleados. Desarrollada como demo para charla de frente de ingeniería.
+PWA para registro de asistencia y liquidación de sueldos. Demo para charla de frente de ingeniería.
 
 ## Arquitectura
 
@@ -11,50 +11,112 @@ Aplicación web progresiva para la gestión de asistencia y liquidación de suel
           Angular 19 PWA (Vercel)
                     │
                     ▼ HTTPS
-               Supabase
-        ┌───────────┼───────────┐
-        │           │           │
-   Auth (email)  PostgreSQL  Edge Functions
-                                │
-                                ▼
-                         Google Sheets API
+                Supabase
+      ┌─────────────┼─────────────┐
+      │             │             │
+ Auth (email)  PostgreSQL   Edge Functions
+                  + RLS           │
+                          ┌───────┴───────┐
+                          ▼               ▼
+                  create-empleado    sync-sheets
+                  (service_role)   Google Sheets API
 ```
 
-## Stack tecnológico
+## Roles
+
+| Rol | Puede |
+|-----|-------|
+| `admin` | Todo: empleados, asistencia de cualquier persona, liquidar, editar registros |
+| `colaborador` | Registrar y editar su propia asistencia, ver sus horas efectivas y sus liquidaciones |
+
+El aislamiento se aplica en la base de datos con Row Level Security, no solo en la UI.
+
+## Stack
 
 | Componente | Tecnología |
 |-----------|-----------|
-| Frontend | Angular 19, TypeScript, SCSS |
-| PWA | Service Worker, manifest.webmanifest |
+| Frontend | Angular 19 (standalone, signals, nuevo control flow) |
+| Estilos | SCSS propio, glassmorphism, mobile first |
 | Backend | Supabase (PostgreSQL, Auth, RLS, Edge Functions) |
-| Integración | Google Sheets API via Service Account |
+| Integración | Google Sheets API con Service Account |
 | Hosting | Vercel (SPA estático) |
-| Repositorio | GitHub |
 
 ## Requisitos
 
 - Node.js 18+
 - npm 9+
+- Supabase CLI (solo para desplegar Edge Functions)
 
 ## Instalación
 
 ```bash
-git clone https://github.com/oscariasADL/liquidador-sueldos-pwa.git
-cd liquidador-sueldos-pwa
 npm install
-```
-
-## Desarrollo local
-
-```bash
 npm start
 ```
 
-La app se abre en `http://localhost:4200`.
+Abre `http://localhost:4200`.
 
-## Variables de entorno
+## Configuración de Supabase
 
-Archivo `src/environments/environment.ts`:
+### 1. Migraciones
+
+En **Supabase Dashboard → SQL Editor**, ejecuta en orden:
+
+```
+supabase/migrations/001_initial_schema.sql
+supabase/migrations/002_roles_and_profiles.sql
+```
+
+La migración `001` crea las tablas base. La `002` agrega roles, la tabla `profiles`,
+el campo `email` en empleados y reescribe todas las políticas RLS por rol.
+
+> En `002` reemplaza `TU_EMAIL_AQUI` por el email de tu usuario antes de ejecutar.
+> Sin un `profile` asignado el login se rechaza.
+
+### 2. Usuario administrador
+
+1. **Authentication → Users → Add User**: crea el usuario con *Auto Confirm* activado.
+2. Ejecuta la sección final de `002_roles_and_profiles.sql` con ese email para asignarle `role = 'admin'`.
+
+Los colaboradores no se crean a mano: el admin los crea desde la app y la Edge
+Function `create-empleado` provisiona la cuenta con rol `colaborador`.
+
+### 3. Edge Functions
+
+```bash
+supabase link --project-ref TU_PROJECT_REF
+supabase functions deploy create-empleado
+supabase functions deploy sync-sheets
+```
+
+`create-empleado` usa `SUPABASE_SERVICE_ROLE_KEY`, que Supabase inyecta
+automáticamente. No requiere secrets adicionales.
+
+### 4. Secrets para Google Sheets
+
+**Edge Functions → Secrets**:
+
+| Secret | Descripción |
+|--------|-------------|
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON completo de la Service Account |
+| `GOOGLE_SPREADSHEET_ID` | ID del spreadsheet (está en su URL) |
+| `GOOGLE_SHEET_NAME` | Nombre de la hoja destino (default: `Liquidaciones`) |
+
+## Google Sheets
+
+1. Crea un proyecto en [Google Cloud Console](https://console.cloud.google.com).
+2. Habilita **Google Sheets API**.
+3. Crea una **Service Account** y genera una key en formato JSON.
+4. Crea el spreadsheet y compártelo como *Editor* con el email de la Service Account.
+5. Copia el ID desde la URL: `https://docs.google.com/spreadsheets/d/{ID}/edit`.
+6. Registra los tres secrets del punto anterior.
+
+Columnas que escribe la función: empleado, documento, período, total horas,
+valor hora, total a pagar, fecha de liquidación, estado, id de liquidación y fecha de sync.
+
+## Variables de entorno del frontend
+
+`src/environments/environment.ts`:
 
 ```typescript
 export const environment = {
@@ -64,132 +126,55 @@ export const environment = {
 };
 ```
 
-**NUNCA incluir en el frontend:**
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `GOOGLE_PRIVATE_KEY`
-- `GOOGLE_CLIENT_SECRET`
+La *publishable key* es pública por diseño y depende de RLS para ser segura.
+Nunca incluyas en el frontend `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_PRIVATE_KEY`
+ni `GOOGLE_CLIENT_SECRET`.
 
-## Build
+## Build y deploy
 
 ```bash
 npm run build
 ```
 
-Output en `dist/liquidador-sueldos-pwa/browser/`.
+En Vercel, conecta el repositorio y usa:
 
-## Deploy en Vercel
+- Build command: `npx ng build --configuration production`
+- Output directory: `dist/liquidador-sueldos-pwa/browser`
 
-1. Conecta el repo de GitHub en [vercel.com](https://vercel.com)
-2. Configura:
-   - Build command: `npx ng build --configuration production`
-   - Output directory: `dist/liquidador-sueldos-pwa/browser`
-3. El `vercel.json` ya configura rewrites para Angular Router
+`vercel.json` ya define los rewrites que necesita Angular Router.
 
-## Supabase
-
-### Migración
-
-Ejecuta el SQL en **Supabase Dashboard → SQL Editor**:
-
-```
-supabase/migrations/001_initial_schema.sql
-```
-
-Este script crea:
-- 3 tablas: `empleados`, `registros_asistencia`, `liquidaciones`
-- Triggers de `updated_at` automático
-- RLS habilitado en todas las tablas
-- Policies para usuarios autenticados
-- 3 empleados de ejemplo (seed)
-- Índices de performance
-
-### RLS (Row Level Security)
-
-- Habilitado en todas las tablas
-- Solo usuarios `authenticated` pueden SELECT, INSERT, UPDATE
-- No hay policies de DELETE (los registros se desactivan)
-- No hay acceso para `anon`
-
-### Crear usuario admin
-
-En **Supabase Dashboard → Authentication → Users → Add User**:
-- Email: tu email
-- Password: tu contraseña
-- Auto confirm: sí
-
-### Edge Functions
-
-#### sync-sheets
-
-Sincroniza liquidaciones con Google Sheets.
-
-Código: `supabase/functions/sync-sheets/index.ts`
-
-**Secrets requeridos (Supabase Dashboard → Edge Functions → Secrets):**
-
-| Secret | Descripción |
-|--------|------------|
-| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON completo de la Service Account de Google |
-| `GOOGLE_SPREADSHEET_ID` | ID del spreadsheet (de la URL de Google Sheets) |
-| `GOOGLE_SHEET_NAME` | Nombre de la hoja (default: "Liquidaciones") |
-
-## Google Sheets
-
-### Configuración
-
-1. **Crear proyecto en Google Cloud Console** → [console.cloud.google.com](https://console.cloud.google.com)
-2. **Habilitar Google Sheets API** → APIs & Services → Library → buscar "Google Sheets API" → Enable
-3. **Crear Service Account** → IAM & Admin → Service Accounts → Create
-4. **Generar key JSON** → Service Account → Keys → Add Key → JSON
-5. **Crear spreadsheet** en Google Sheets
-6. **Compartir el spreadsheet** con el email de la Service Account (Editor)
-7. **Copiar el spreadsheet ID** de la URL: `https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/edit`
-8. **Configurar secrets** en Supabase con el JSON, ID y nombre de hoja
-
-### Columnas del spreadsheet
-
-| Columna | Contenido |
-|---------|-----------|
-| A | Nombre del empleado |
-| B | Documento |
-| C | Período |
-| D | Total horas |
-| E | Valor hora |
-| F | Total a pagar |
-| G | Fecha liquidación |
-| H | Estado |
-| I | ID liquidación |
-| J | Fecha sync |
-
-## Estructura del proyecto
+## Estructura
 
 ```
 src/app/
-├── core/                 # Services singleton, guards, models
-│   ├── services/         # supabase, auth, sheets-sync
-│   ├── guards/           # auth guard
-│   └── models/           # TypeScript interfaces
-├── shared/               # Componentes y utilidades reutilizables
-│   ├── components/       # navbar, spinner, badge, toast
-│   ├── pipes/            # currencyCop, hoursFormat
-│   └── utils/            # time-calculator
-├── features/             # Módulos por funcionalidad
-│   ├── auth/             # Login
-│   ├── dashboard/        # Métricas
-│   ├── empleados/        # CRUD empleados
-│   ├── asistencia/       # Registro diario
-│   └── liquidacion/      # Liquidar + sync Sheets
-└── layout/               # Main layout con navbar
+├── core/
+│   ├── services/     supabase, auth (rol + sesión), sheets-sync
+│   ├── guards/       authGuard, adminGuard
+│   └── models/       interfaces de dominio
+├── shared/
+│   ├── components/   navbar, spinner, badge, toast, back-button
+│   ├── pipes/        currencyCop, hoursFormat
+│   └── utils/        time-calculator
+├── features/
+│   ├── auth/         login
+│   ├── dashboard/    métricas y accesos (admin)
+│   ├── empleados/    CRUD + provisión de cuentas (admin)
+│   ├── asistencia/   listado con filtros + formulario de registro
+│   └── liquidacion/  cálculo, historial y desprendible imprimible
+└── layout/           shell con navbar
 ```
 
 ## Pantallas
 
-1. **Login** — Email + contraseña con Supabase Auth
-2. **Dashboard** — Métricas: empleados activos, asistencias hoy, liquidaciones pendientes, total mes
-3. **Empleados** — Listar, crear, editar, desactivar
-4. **Asistencia** — Registrar entrada/salida/almuerzo por empleado, tabla de últimos 30 días
-5. **Liquidación** — Seleccionar empleado + rango → desglose día a día → confirmar → sync Sheets
-6. **Detalle Liquidación** — Desglose, marcar pagado, reintentar sync
+| Ruta | Acceso | Descripción |
+|------|--------|-------------|
+| `/login` | Público | Ingreso con email y contraseña |
+| `/dashboard` | Admin | Métricas del período y accesos rápidos |
+| `/empleados` | Admin | Listado, alta, edición y desactivación |
+| `/asistencia` | Ambos | Registros con filtros y total de horas efectivas |
+| `/asistencia/registrar` | Ambos | Alta y edición de jornada con cálculo en vivo |
+| `/liquidacion` | Ambos | Admin liquida; el colaborador ve sus liquidaciones |
+| `/liquidacion/:id` | Ambos | Desprendible de pago imprimible |
 
 ## Licencia
 
