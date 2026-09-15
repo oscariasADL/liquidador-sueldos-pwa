@@ -40,6 +40,7 @@ import { ToastService } from '../../../../shared/components/toast/toast.componen
             [empleado]="emp"
             (onDeactivate)="deactivate($event)"
             (onActivate)="activate($event)"
+            (onDelete)="remove($event)"
           />
         }
       </div>
@@ -85,6 +86,23 @@ export default class EmpleadosListPageComponent implements OnInit {
       await this.loadEmpleados();
     } catch {
       this.toast.error('Error al activar el empleado.');
+    }
+  }
+
+  async remove(emp: Empleado): Promise<void> {
+    const confirmed = confirm(
+      `¿Eliminar a ${emp.nombre} de forma permanente?\n\n` +
+        'Se borra el empleado y su cuenta de acceso. Esta acción no se puede deshacer.\n' +
+        'Si tiene asistencias o liquidaciones registradas, se cancelará y deberás desactivarlo.'
+    );
+    if (!confirmed) return;
+
+    try {
+      await this.empleadoService.delete(emp.id);
+      this.toast.success(`${emp.nombre} eliminado.`);
+      await this.loadEmpleados();
+    } catch (error) {
+      this.toast.error(error instanceof Error ? error.message : 'Error al eliminar el empleado.');
     }
   }
 }

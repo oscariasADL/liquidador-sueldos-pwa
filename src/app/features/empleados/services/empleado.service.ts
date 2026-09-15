@@ -94,6 +94,24 @@ export class EmpleadoService {
     if (error) throw new Error(error.message);
   }
 
+  /**
+   * Permanently deletes the employee and their auth account. Runs through an
+   * Edge Function because removing an auth user requires the service_role key.
+   * The function refuses deletion when the employee has history.
+   */
+  async delete(id: string): Promise<void> {
+    const { data, error } = await this.supabase.functions.invoke('delete-empleado', {
+      body: { empleado_id: id },
+    });
+
+    if (error) {
+      throw new Error(await this.extractFunctionError(error));
+    }
+    if (data?.error) {
+      throw new Error(data.error);
+    }
+  }
+
   async countActivos(): Promise<number> {
     const { count, error } = await this.supabase
       .from('empleados')

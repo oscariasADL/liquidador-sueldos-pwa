@@ -79,6 +79,12 @@ export default class AsistenciaFormPageComponent implements OnInit {
 
       const id = this.route.snapshot.paramMap.get('id');
       if (id) {
+        // Only the admin corrects existing records; RLS also enforces this.
+        if (!this.isAdmin()) {
+          this.toast.error('Solo un administrador puede modificar un registro ya creado.');
+          this.router.navigate(['/asistencia']);
+          return;
+        }
         this.registroId.set(id);
         await this.loadRegistro(id);
       }

@@ -39,14 +39,22 @@ import { CurrencyCopPipe } from '../../../../shared/pipes/currency-cop.pipe';
           Editar
         </a>
         @if (empleado.estado === 'activo') {
-          <button class="btn-ghost btn-sm" (click)="onDeactivate.emit(empleado)">
+          <button type="button" class="btn-ghost btn-sm" (click)="onDeactivate.emit(empleado)">
             Desactivar
           </button>
         } @else {
-          <button class="btn-ghost btn-sm" (click)="onActivate.emit(empleado)">
+          <button type="button" class="btn-ghost btn-sm" (click)="onActivate.emit(empleado)">
             Activar
           </button>
         }
+        <button
+          type="button"
+          class="btn-ghost btn-sm emp-card__delete"
+          (click)="onDelete.emit(empleado)"
+          [attr.aria-label]="'Eliminar a ' + empleado.nombre"
+        >
+          Eliminar
+        </button>
       </div>
     </div>
   `,
@@ -142,9 +150,22 @@ import { CurrencyCopPipe } from '../../../../shared/pipes/currency-cop.pipe';
 
       &__actions {
         display: flex;
+        flex-wrap: wrap;
         gap: $space-2;
         padding-top: $space-3;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      &__delete {
+        margin-left: auto;
+        color: $color-error;
+        border-color: rgba(239, 68, 68, 0.3);
+
+        &:hover {
+          color: $color-error;
+          background: $color-error-light;
+          border-color: $color-error;
+        }
       }
     }
   `,
@@ -153,6 +174,7 @@ export class EmpleadoCardComponent {
   @Input({ required: true }) empleado!: Empleado;
   @Output() onDeactivate = new EventEmitter<Empleado>();
   @Output() onActivate = new EventEmitter<Empleado>();
+  @Output() onDelete = new EventEmitter<Empleado>();
 
   get initials(): string {
     return this.empleado.nombre

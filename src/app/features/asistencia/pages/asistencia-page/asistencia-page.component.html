@@ -77,7 +77,7 @@
             <th>Salida</th>
             <th>Almuerzo</th>
             <th>Horas</th>
-            <th></th>
+            @if (isAdmin()) { <th></th> }
           </tr>
         </thead>
         <tbody>
@@ -93,11 +93,13 @@
                   {{ reg.horas_trabajadas | hoursFormat }}
                 </span>
               </td>
-              <td>
-                <a class="btn-ghost btn-sm" [routerLink]="['/asistencia/registrar', reg.id]">
-                  Editar
-                </a>
-              </td>
+              @if (isAdmin()) {
+                <td>
+                  <a class="btn-ghost btn-sm" [routerLink]="['/asistencia/registrar', reg.id]">
+                    Editar
+                  </a>
+                </td>
+              }
             </tr>
           }
         </tbody>
@@ -136,9 +138,11 @@
           </div>
         </dl>
 
-        <a class="btn-ghost btn-sm btn-block" [routerLink]="['/asistencia/registrar', reg.id]">
-          Editar registro
-        </a>
+        @if (isAdmin()) {
+          <a class="btn-ghost btn-sm btn-block" [routerLink]="['/asistencia/registrar', reg.id]">
+            Editar registro
+          </a>
+        }
       </div>
     }
   </div>
