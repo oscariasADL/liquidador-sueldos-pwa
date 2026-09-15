@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "build:upload": "ng build --configuration production && cp vercel.upload.json dist/liquidador-sueldos-pwa/browser/vercel.json"
   },
   "private": true,
   "dependencies": {
